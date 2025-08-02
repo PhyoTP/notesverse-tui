@@ -1,0 +1,7 @@
+Header {
+  dock: top;
+  height: 3;
+  content-align: center middle;
+  background: palegreen;
+  color: white;
+}
