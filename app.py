@@ -3,6 +3,7 @@ import os
 from rich import print
 from rich.prompt import Prompt, IntPrompt
 from rich.tree import Tree
+import random
 
 # Specify the directory name
 directory_name = "my_notes"
@@ -84,18 +85,60 @@ def view_subject(name):
                     if isinstance(parent, Description):
                         print(f"[yellow]{parent.relations[0].name} {parent.name} {', '.join(child.name for child in parent.children)}")
                     if isinstance(parent, Topic):
-                        print(f"[yellow]Parent: {parent.name}")
+                        print(f"[yellow]Parents: {parent.name}")
                 if len(topic.children) > 0:
-                    print("[green]Children:")
+                    tree = Tree("[green]Children")
                     for child in topic.children:
-                        print(f"[green] - {child.name}")
+                        tree.add(f"[green]{child.name}")
             else:
                 print(f"[red]Topic '{topic_name}' not found.[/red]")
+        def play_game():
+            while True:
+                # Get a topic with at least one relation
+                valid_topics = [t for t in subject.topics.values() if len(t.relations) > 0]
+                if not valid_topics:
+                    print("[red]No topics with relations found![/red]")
+                    return
+                
+                random_topic = random.choice(valid_topics)
+                random_relation = random.choice(random_topic.relations)
+
+                if isinstance(random_relation, Description) and len(random_relation.children) > 0:
+                    random_child = random.choice(random_relation.children)
+
+                    # Get other topics for the quiz
+                    other_topics = [t for t in subject.topics.values() if t != random_child]
+                    num_choices = min(3, len(other_topics))
+                    random_topics = random.sample(other_topics, num_choices)
+                    options = random_topics + [random_child]
+                    random.shuffle(options)
+
+                    print(f"[b]{random_topic.name} {random_relation.name}...")
+                    for index, topic in enumerate(options):
+                        print(f"[blue]{index + 1} - {topic.name}")
+
+                    while True:
+                        answer = Prompt.ask(
+                            "[b]Choose a correct option number",
+                            choices=[str(i + 1) for i in range(len(options))] + ["exit"]
+                        )
+                        if answer == "exit":
+                            return
+                        if options[int(answer) - 1] in random_relation.children:
+                            print("[green]Correct![/green] Type 'exit' to return or play again.")
+                            break  # exit inner loop to get a new question
+                        else:
+                            print("[red]Incorrect! Try again.[/red]")
+
+                else:
+                    # If this relation isn't usable, try again
+                    continue
+
         print(f"[b blue]Subject: {subject.name}")
         print(f"[b]Topics: {len(subject.topics)}")
         print(f"[b]Relations: {len([line for line in subject.convert_to_string().splitlines() if line.strip()])}")
         print("[green]Choose an action:[/green]")
-        action = Prompt.ask("[b]Show", choices=["relations", "graph", "topics", "exit"])
+        action = Prompt.ask("[b]Show", choices=["relations", "graph", "topics", "games", "exit"])
         if action == "relations":
             for index, line in enumerate(subject.convert_to_string().splitlines()):
                 print(f"[blue]{index + 1} - [/blue]{line}")
@@ -147,6 +190,9 @@ def view_subject(name):
                 view_subject(name)
             else:
                 view_topic(action)
+        elif action == "games":
+            play_game()
+            view_subject(name)
         elif action == "exit":
             print("[green]Exiting subject view.[/green]")
             start()

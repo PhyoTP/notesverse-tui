@@ -7,7 +7,8 @@ class Subject:
         self.name = name
         self.topics = {}
         self.convert_from_string(string)
-
+        # self.verbs = set()
+        # self.adjectives = set()
     def get(self, name, relations=None, children=None, parents=None):
         if name in self.topics:
             existing = self.topics[name]
@@ -30,11 +31,13 @@ class Subject:
                     topic2_name = desc_parts[1].strip()
                     topic = self.get(topic_name)
                     topic * Description(function_name, children=[self.get(topic2.strip()) for topic2 in topic2_name.split(",")])
+                    # self.verbs.add(function_name)
                 else:
                     topic = self.get(topic_name)
                     for desc in description.split(","):
                         desc = desc.strip()
                         topic * Description(desc)
+                        # self.adjectives.add(desc)
             elif ">" in sentence:
                 parts = sentence.split(">")
                 topic_name = parts[0].strip()
